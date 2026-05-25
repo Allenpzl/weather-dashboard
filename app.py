@@ -14,7 +14,7 @@ CITIES = {
 }
 
 st.title("Taiwan Weather Dashboard")
-st.caption("Simple API-based dashboard with a small data pipeline")
+st.caption("")
 
 city = st.sidebar.selectbox("Select City", list(CITIES.keys()), index=0)
 lat, lon = CITIES[city]
