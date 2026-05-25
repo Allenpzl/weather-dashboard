@@ -13,7 +13,7 @@ CITIES = {
     "Hsinchu": (24.81, 120.97),
 }
 
-st.title("🌤️ Taiwan Weather Dashboard")
+st.title("Taiwan Weather Dashboard")
 st.caption("Simple API-based dashboard with a small data pipeline")
 
 city = st.sidebar.selectbox("Select City", list(CITIES.keys()), index=0)
