@@ -13,8 +13,7 @@ st.set_page_config(
 CITIES = {
     "Taipei": (25.05, 121.52),
     "Taichung": (24.15, 120.67),
-    "Kaohsiung": (22.63, 120.30),
-    "Hsinchu": (24.81, 120.97)
+    "Kaohsiung": (22.63, 120.30)
 }
 
 st.title("Taiwan Weather Dashboard")
@@ -94,12 +93,6 @@ try:
         st.metric(
             "Humidity",
             f"{current_humidity:.0f} %"
-        )
-
-    with col4:
-        st.metric(
-            "Rain Probability",
-            f"{current_rain_prob:.0f} %"
         )
 
     st.write(
