@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo
 
 st.set_page_config(
     page_title="Taiwan Weather Dashboard",
-    page_icon="🌤️",
     layout="wide"
 )
 
@@ -18,7 +17,7 @@ CITIES = {
     "Hsinchu": (24.81, 120.97)
 }
 
-st.title("🌤️ Taiwan Weather Dashboard")
+st.title("Taiwan Weather Dashboard")
 st.caption("Weather Dashboard with Data Pipeline and Automatic Updates")
 
 city = st.sidebar.selectbox(
