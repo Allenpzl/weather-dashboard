@@ -4,6 +4,7 @@ import requests
 import plotly.express as px
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import time
 
 st.set_page_config(
     page_title="Taiwan Weather Dashboard",
@@ -27,21 +28,38 @@ city = st.sidebar.selectbox(
 lat, lon = CITIES[city]
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=21600)
 def fetch_weather(lat, lon):
 
     url = (
         "https://api.open-meteo.com/v1/forecast"
         f"?latitude={lat}"
         f"&longitude={lon}"
-        "&hourly=temperature_2m,relative_humidity_2m,"
-        "precipitation,precipitation_probability"
+        "&hourly=temperature_2m,"
+        "relative_humidity_2m,"
+        "precipitation,"
+        "precipitation_probability"
         "&forecast_days=2"
         "&timezone=Asia%2FTaipei"
     )
 
-    response = requests.get(url, timeout=20)
-    response.raise_for_status()
+    response = None
+
+    for _ in range(3):
+
+        response = requests.get(url, timeout=20)
+
+        if response.status_code == 429:
+            time.sleep(2)
+            continue
+
+        response.raise_for_status()
+        break
+
+    if response is None or response.status_code == 429:
+        raise Exception(
+            "Open-Meteo rate limit exceeded. Please try again later."
+        )
 
     data = response.json()
 
@@ -60,12 +78,20 @@ def fetch_weather(lat, lon):
 
     df = df[df["time"] >= taipei_now].head(24)
 
-    return df
+    fetched_at = datetime.now(
+        ZoneInfo("Asia/Taipei")
+    ).strftime("%Y-%m-%d %H:%M:%S")
+
+    return df, fetched_at
 
 
 try:
 
-    df = fetch_weather(lat, lon)
+    df, fetched_at = fetch_weather(lat, lon)
+
+    if df.empty:
+        st.warning("No weather data available.")
+        st.stop()
 
     current_temp = df.iloc[0]["temperature"]
     current_humidity = df.iloc[0]["humidity"]
@@ -73,12 +99,10 @@ try:
 
     st.sidebar.write(
         "Last Updated:",
-        datetime.now(
-            ZoneInfo("Asia/Taipei")
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        fetched_at
     )
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.metric("City", city)
@@ -93,6 +117,12 @@ try:
         st.metric(
             "Humidity",
             f"{current_humidity:.0f} %"
+        )
+
+    with col4:
+        st.metric(
+            "Rain Probability",
+            f"{current_rain_prob:.0f} %"
         )
 
     st.write(
@@ -174,5 +204,14 @@ try:
         )
 
 except Exception as e:
-    st.error("Failed to fetch weather data.")
+
+    st.error(
+        "Weather service is temporarily unavailable."
+    )
+
+    st.info(
+        "This may be caused by Open-Meteo API rate limits. "
+        "Please try again in a few minutes."
+    )
+
     st.exception(e)
